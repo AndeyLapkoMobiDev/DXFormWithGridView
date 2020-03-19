@@ -1,0 +1,21 @@
+﻿@using DXFormWithGridView.Models
+
+<b> Recipe ingredients: </b>
+<br />
+<br />
+
+@(
+    Html.DevExpress().GridView<RecipeIngredient>(settings =>
+    {
+        settings.Name = "detailGrid_" + ViewData["recipeId"];
+        settings.SettingsDetail.MasterGridName = "grid";
+
+        settings.Width = System.Web.UI.WebControls.Unit.Percentage(100);
+
+        settings.CallbackRouteValues = new { Controller = "Recipes", Action = "MasterDetailRecipeIngredients", recipeId = ViewData["recipeId"] };
+
+        settings.Columns.Add(m => m.RecipeId);
+        settings.Columns.Add(m => m.IngredientId);
+
+    }).Bind(Model).GetHtml()
+)

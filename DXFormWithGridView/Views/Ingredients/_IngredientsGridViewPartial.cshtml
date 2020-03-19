@@ -1,0 +1,67 @@
+@{
+    var grid = Html.DevExpress().GridView(settings =>
+    {
+        settings.Name = "IngredientsGridView";
+        settings.CallbackRouteValues = new { Controller = "Ingredients", Action = "IngredientsGridViewPartial" };
+
+        settings.Width = Unit.Percentage(100);
+
+        settings.SettingsEditing.AddNewRowRouteValues = new { Controller = "Ingredients", Action = "IngredientsGridViewPartialAddNew" };
+        settings.SettingsEditing.UpdateRowRouteValues = new { Controller = "Ingredients", Action = "IngredientsGridViewPartialUpdate" };
+        settings.SettingsEditing.DeleteRowRouteValues = new { Controller = "Ingredients", Action = "IngredientsGridViewPartialDelete" };
+        settings.SettingsEditing.Mode = GridViewEditingMode.EditFormAndDisplayRow;
+        settings.SettingsBehavior.ConfirmDelete = true;
+
+        settings.Toolbars.Add(tb =>
+        {
+            tb.Enabled = true;
+            tb.Position = GridToolbarPosition.Top;
+            tb.SettingsAdaptivity.Enabled = true;
+            tb.SettingsAdaptivity.EnableCollapseRootItemsToIcons = true;
+
+            tb.Items.Add(GridViewToolbarCommand.New);
+            tb.Items.Add(GridViewToolbarCommand.Edit);
+            tb.Items.Add(GridViewToolbarCommand.Delete);
+            tb.Items.Add(i =>
+            {
+                i.Command = GridViewToolbarCommand.Refresh;
+                i.BeginGroup = true;
+                i.AdaptivePriority = 2;
+            });
+
+            tb.Items.Add(i =>
+            {
+                i.Alignment = MenuItemAlignment.Right;
+                i.SetTemplateContent(c =>
+                {
+                    Html.DevExpress().ButtonEdit(s =>
+                    {
+                        s.Name = "search";
+                        s.Properties.NullText = "Search...";
+                        s.Properties.Buttons
+                    .Add()
+                    .Image.IconID = DevExpress.Web.ASPxThemes.IconID.FindFind16x16gray;
+                    }).Render();
+                });
+            });
+        });
+
+        settings.KeyFieldName = "Id";
+
+        settings.SettingsPager.Visible = true;
+        settings.SettingsSearchPanel.CustomEditorName = "search";
+        settings.SettingsBehavior.AllowFocusedRow = true;
+        settings.Settings.ShowHeaderFilterButton = true;
+        settings.SettingsContextMenu.Enabled = true;
+
+        settings.Columns.Add("Id");
+        settings.Columns.Add("Name");
+
+    });
+
+    if (ViewData["EditError"] != null)
+    {
+        grid.SetEditErrorText((string)ViewData["EditError"]);
+    }
+}
+@grid.Bind(Model).GetHtml()

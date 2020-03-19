@@ -1,0 +1,160 @@
+@{
+    var grid = Html.DevExpress().GridView(settings =>
+    {
+        settings.Name = "RecipesGridView";
+        settings.CallbackRouteValues = new { Controller = "Recipes", Action = "RecipesGridViewPartial" };
+
+        settings.Width = Unit.Percentage(100);
+
+        settings.SettingsEditing.AddNewRowRouteValues = new { Controller = "Recipes", Action = "RecipesGridViewPartialAddNew" };
+        settings.SettingsEditing.UpdateRowRouteValues = new { Controller = "Recipes", Action = "RecipesGridViewPartialUpdate" };
+        settings.SettingsEditing.DeleteRowRouteValues = new { Controller = "Recipes", Action = "RecipesGridViewPartialDelete" };
+        settings.SettingsEditing.Mode = GridViewEditingMode.PopupEditForm;
+        settings.SettingsBehavior.ConfirmDelete = true;
+
+        settings.Toolbars.Add(tb =>
+        {
+            tb.Enabled = true;
+            tb.Position = GridToolbarPosition.Top;
+            tb.SettingsAdaptivity.Enabled = true;
+            tb.SettingsAdaptivity.EnableCollapseRootItemsToIcons = true;
+
+            tb.Items.Add(GridViewToolbarCommand.New);
+            tb.Items.Add(GridViewToolbarCommand.Edit);
+            tb.Items.Add(GridViewToolbarCommand.Delete);
+            tb.Items.Add(i =>
+            {
+                i.Command = GridViewToolbarCommand.Refresh;
+                i.BeginGroup = true;
+                i.AdaptivePriority = 2;
+            });
+
+            tb.Items.Add(i =>
+            {
+                i.Alignment = MenuItemAlignment.Right;
+                i.SetTemplateContent(c =>
+                {
+                    Html.DevExpress().ButtonEdit(s =>
+                    {
+                        s.Name = "search";
+                        s.Properties.NullText = "Search...";
+                        s.Properties.Buttons
+                    .Add()
+                    .Image.IconID = DevExpress.Web.ASPxThemes.IconID.FindFind16x16gray;
+                    }).Render();
+                });
+            });
+        });
+
+        settings.KeyFieldName = "Id";
+
+        settings.SettingsPager.Visible = true;
+        settings.SettingsSearchPanel.CustomEditorName = "search";
+        settings.SettingsBehavior.AllowFocusedRow = true;
+        settings.Settings.ShowHeaderFilterButton = true;
+        settings.SettingsContextMenu.Enabled = true;
+
+        settings.Columns.Add("Id");
+        settings.Columns.Add("Name");
+
+        settings.SettingsDetail.AllowOnlyOneMasterRowExpanded = false;
+        settings.SettingsDetail.ShowDetailRow = true;
+
+        settings.SetDetailRowTemplateContent(c =>
+        {
+            ViewContext.Writer.Write(
+                "<b> Description: </b><br/><br/>" +
+                DataBinder.Eval(c.DataItem, "Description") +
+                "<br />" +
+                "<br />"
+            );
+            Html.RenderAction("MasterDetailRecipeIngredients", new { recipeId = DataBinder.Eval(c.DataItem, "Id") });
+        });
+
+
+
+        settings.SetEditFormTemplateContent(c =>
+        {
+            Html.DevExpress().FormLayout(flSettings =>
+            {
+                flSettings.Name = "FormLayoutProducts";
+                flSettings.Width = Unit.Percentage(100);
+
+                flSettings.Items.Add(i =>
+                {
+                    i.FieldName = "Id";
+                });
+
+                flSettings.Items.Add(i =>
+                {
+                    i.FieldName = "Name";
+                });
+
+                flSettings.Items.Add(i =>
+                {
+                    i.FieldName = "Description";
+                });
+
+
+                flSettings.Items.Add(i =>
+                {
+                    i.FieldName = "RecipeIngredients";
+                    i.SetNestedContent(() =>
+                    {
+
+                        Html.DevExpress().GridView<DXFormWithGridView.Models.RecipeIngredient>(riSettings =>
+                        {
+                            riSettings.Name = "detailGrid_" + ViewData["recipeId"];
+
+                            riSettings.Columns.Add(m => m.RecipeId);
+                            riSettings.Columns.Add(m => m.IngredientId);
+
+                        }).Bind(DataBinder.Eval(c.DataItem, "RecipeIngredients")).Render();
+
+                    });
+                });
+
+                flSettings.Items.AddEmptyItem();
+                flSettings.Items.Add(i =>
+                {
+                    i.ShowCaption = DefaultBoolean.False;
+                }).SetNestedContent(() =>
+                {
+                    ViewContext.Writer.Write("<div style='float:right'>");
+                    Html.DevExpress().Button(btnSettings =>
+                    {
+                        btnSettings.Name = "btnUpdate";
+                        btnSettings.Text = "Update";
+                        btnSettings.ClientSideEvents.Click = "function(s, e){ RecipesGridView.UpdateEdit(); }";
+                    }).Render();
+                    Html.DevExpress().Button(btnSettings =>
+                    {
+                        btnSettings.Name = "btnCancel";
+                        btnSettings.Text = "Cancel";
+                        btnSettings.Style[HtmlTextWriterStyle.MarginLeft] = "5px";
+                        btnSettings.ClientSideEvents.Click = "function(s, e){ RecipesGridView.CancelEdit(); }";
+                    }).Render();
+                    ViewContext.Writer.Write("</div>");
+                });
+            })
+            .Bind(ViewData["EditableProduct"] ?? GetEditingProduct(c.Grid))
+            .Render();
+        });
+
+    });
+
+    if (ViewData["EditError"] != null)
+    {
+        grid.SetEditErrorText((string)ViewData["EditError"]);
+    }
+}
+@grid.Bind(Model).GetHtml()
+
+@functions{
+    object GetEditingProduct(ASPxGridView grid)
+    {
+        if (grid.IsNewRowEditing)
+            return new DXFormWithGridView.Models.Recipe();
+        return grid.GetRow(grid.EditingRowVisibleIndex);
+    }
+}
