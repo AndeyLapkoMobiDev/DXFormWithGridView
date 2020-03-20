@@ -1,0 +1,38 @@
+﻿
+@model System.Collections.IEnumerable
+
+@Html.DevExpress().GridView(settings =>
+{
+    settings.Name = "RecipeIngredientsGridView";
+    settings.KeyFieldName = "IngredientId";
+    settings.CallbackRouteValues = new { Controller = "Recipes", Action = "RecipeIngredientsGridView", recipeId = ViewData["recipeId"] };
+    settings.SettingsEditing.BatchUpdateRouteValues = new { Controller = "Recipes", Action = "RecipeIngredientsBatchUpdate", recipeId = ViewData["recipeId"] };
+
+    settings.CommandColumn.Visible = true;
+    settings.CommandColumn.ShowEditButton = true;
+    settings.CommandColumn.ShowNewButton = true;
+    settings.CommandColumn.ShowDeleteButton = true;
+    settings.CommandColumn.Width = Unit.Percentage(20);
+    settings.Settings.ShowStatusBar = GridViewStatusBarMode.Hidden;
+
+    settings.SettingsEditing.Mode = GridViewEditingMode.Batch;
+
+    settings.Columns.Add(column =>
+    {
+        column.FieldName = "IngredientId";
+        column.SortAscending();
+        column.EditorProperties().ComboBox(combo =>
+        {
+            combo.ValueField = "Id";
+            combo.TextField = "Name";
+            combo.ValueType = typeof(int);
+            combo.BindList(DXFormWithGridView.Models.Data.Ingredients);
+            combo.ValidationSettings.Display = Display.Dynamic;
+        });
+    });
+
+    settings.Width = Unit.Percentage(100);
+
+    settings.ClientSideEvents.EndCallback = "recipeIngredientsHandlers.endCallback";
+
+}).SetEditErrorText((string)ViewData["EditError"]).Bind(Model).GetHtml()

@@ -165,7 +165,7 @@
     <Content Include="Views\Ingredients\Index.cshtml" />
     <Content Include="Views\Recipes\Index.cshtml" />
     <Content Include="Views\Ingredients\_IngredientsGridViewPartial.cshtml" />
-    <Content Include="Views\Recipes\_RecipesGridViewPartial.cshtml" />
+    <Content Include="Views\Recipes\_RecipesGridView.cshtml" />
     <Content Include="Views\Recipes\_MasterDetailRecipeIngredients.cshtml" />
   </ItemGroup>
   <ItemGroup>
@@ -180,6 +180,7 @@
     <Content Include="Views\_ViewStart.cshtml" />
     <Content Include="Views\Home\Index.cshtml" />
     <Content Include="Scripts\jquery.min.map" />
+    <Content Include="Views\Recipes\_RecipeIngredientsGridView.cshtml" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>

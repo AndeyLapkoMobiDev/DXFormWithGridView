@@ -1,1 +1,19 @@
-﻿@Html.Action("RecipesGridViewPartial")
+﻿
+<script>
+    var buttonHandlers = {
+        update: function (s, e) {
+            RecipeIngredientsGridView.batchEditApi.HasChanges() ? RecipeIngredientsGridView.UpdateEdit() : RecipesGridView.UpdateEdit();
+        },
+        cancel: function (s, e) { RecipesGridView.CancelEdit(); }
+    };
+
+    var recipeIngredientsHandlers = {
+        endCallback: function (s, e) {
+            if (RecipeIngredientsGridView.batchEditApi.HasChanges()) return;
+            RecipesGridView.UpdateEdit();
+        }
+    }
+
+</script>
+
+@Html.Action("RecipesGridView")

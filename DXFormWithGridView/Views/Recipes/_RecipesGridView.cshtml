@@ -1,8 +1,9 @@
+
 @{
     var grid = Html.DevExpress().GridView(settings =>
     {
         settings.Name = "RecipesGridView";
-        settings.CallbackRouteValues = new { Controller = "Recipes", Action = "RecipesGridViewPartial" };
+        settings.CallbackRouteValues = new { Controller = "Recipes", Action = "RecipesGridView" };
 
         settings.Width = Unit.Percentage(100);
 
@@ -54,7 +55,11 @@
         settings.Settings.ShowHeaderFilterButton = true;
         settings.SettingsContextMenu.Enabled = true;
 
-        settings.Columns.Add("Id");
+        settings.Columns.Add(column =>
+        {
+            column.FieldName = "Id";
+            column.ReadOnly = true;
+        });
         settings.Columns.Add("Name");
 
         settings.SettingsDetail.AllowOnlyOneMasterRowExpanded = false;
@@ -71,74 +76,69 @@
             Html.RenderAction("MasterDetailRecipeIngredients", new { recipeId = DataBinder.Eval(c.DataItem, "Id") });
         });
 
-
-
         settings.SetEditFormTemplateContent(c =>
         {
-            Html.DevExpress().FormLayout(flSettings =>
+            Html.DevExpress().FormLayout(form =>
             {
-                flSettings.Name = "FormLayoutProducts";
-                flSettings.Width = Unit.Percentage(100);
+                form.Name = "EditForm";
+                form.Width = Unit.Percentage(100);
 
-                flSettings.Items.Add(i =>
+                form.Items.Add(i =>
                 {
-                    i.FieldName = "Id";
-                });
-
-                flSettings.Items.Add(i =>
-                {
-                    i.FieldName = "Name";
-                });
-
-                flSettings.Items.Add(i =>
-                {
-                    i.FieldName = "Description";
-                });
-
-
-                flSettings.Items.Add(i =>
-                {
-                    i.FieldName = "RecipeIngredients";
-                    i.SetNestedContent(() =>
+                    i.Caption = "Name";
+                    i.NestedExtension().TextBox(name =>
                     {
-
-                        Html.DevExpress().GridView<DXFormWithGridView.Models.RecipeIngredient>(riSettings =>
-                        {
-                            riSettings.Name = "detailGrid_" + ViewData["recipeId"];
-
-                            riSettings.Columns.Add(m => m.RecipeId);
-                            riSettings.Columns.Add(m => m.IngredientId);
-
-                        }).Bind(DataBinder.Eval(c.DataItem, "RecipeIngredients")).Render();
-
+                        name.Name = "Name";
+                        name.Text = DataBinder.Eval(c.DataItem, "Name") as string;
                     });
                 });
 
-                flSettings.Items.AddEmptyItem();
-                flSettings.Items.Add(i =>
+                form.Items.Add(i =>
+                {
+                    i.Caption = "Description";
+                    i.NestedExtension().TextBox(name =>
+                    {
+                        name.Name = "Description";
+                        name.Text = DataBinder.Eval(c.DataItem, "Description") as string;
+                    });
+                });
+
+                form.Items.Add(i =>
                 {
                     i.ShowCaption = DefaultBoolean.False;
-                }).SetNestedContent(() =>
-                {
-                    ViewContext.Writer.Write("<div style='float:right'>");
-                    Html.DevExpress().Button(btnSettings =>
+                    i.SetNestedContent(() =>
                     {
-                        btnSettings.Name = "btnUpdate";
-                        btnSettings.Text = "Update";
-                        btnSettings.ClientSideEvents.Click = "function(s, e){ RecipesGridView.UpdateEdit(); }";
-                    }).Render();
-                    Html.DevExpress().Button(btnSettings =>
-                    {
-                        btnSettings.Name = "btnCancel";
-                        btnSettings.Text = "Cancel";
-                        btnSettings.Style[HtmlTextWriterStyle.MarginLeft] = "5px";
-                        btnSettings.ClientSideEvents.Click = "function(s, e){ RecipesGridView.CancelEdit(); }";
-                    }).Render();
-                    ViewContext.Writer.Write("</div>");
+                        Html.RenderAction("RecipeIngredientsGridView", new { recipeId = c.Grid.IsNewRowEditing ? -1 : c.KeyValue });
+                    });
                 });
-            })
-            .Bind(ViewData["EditableProduct"] ?? GetEditingProduct(c.Grid))
-            .Render();
+
+                form.Items.AddEmptyItem();
+                form.Items.Add(i =>
+                {
+                    i.ColSpan = 1;
+                    i.ShowCaption = DefaultBoolean.False;
+                    i.HorizontalAlign = FormLayoutHorizontalAlign.Right;
+                    i.SetNestedContent(() =>
+                    {
+                        Html.DevExpress().Button(button =>
+                        {
+                            button.Name = "Update";
+                            button.Text = "Update";
+                            button.RenderMode = ButtonRenderMode.Link;
+                            button.ClientSideEvents.Click = "buttonHandlers.update";
+                            button.Styles.Style.Paddings.PaddingRight = 10;
+                        }).Render();
+                        Html.DevExpress().Button(button =>
+                        {
+                            button.Name = "Cancel";
+                            button.Text = "Cancel";
+                            button.RenderMode = ButtonRenderMode.Link;
+                            button.ClientSideEvents.Click = "buttonHandlers.cancel";
+                        }).Render();
+                    });
+                });
+
+            }).Render();
         });
 
     });
@@ -149,12 +149,3 @@
     }
 }
 @grid.Bind(Model).GetHtml()
-
-@functions{
-    object GetEditingProduct(ASPxGridView grid)
-    {
-        if (grid.IsNewRowEditing)
-            return new DXFormWithGridView.Models.Recipe();
-        return grid.GetRow(grid.EditingRowVisibleIndex);
-    }
-}

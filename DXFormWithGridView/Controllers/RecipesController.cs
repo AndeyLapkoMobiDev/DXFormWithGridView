@@ -1,9 +1,7 @@
 ﻿using DevExpress.Web.Mvc;
 using DXFormWithGridView.Models;
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Web;
 using System.Web.Mvc;
 
 namespace DXFormWithGridView.Controllers
@@ -27,10 +25,12 @@ namespace DXFormWithGridView.Controllers
             return PartialView("_MasterDetailRecipeIngredients", model);
         }
 
+        #region Recipes
+
         [ValidateInput(false)]
-        public ActionResult RecipesGridViewPartial()
+        public ActionResult RecipesGridView()
         {
-            return PartialView("_RecipesGridViewPartial", Data.Recipes);
+            return PartialView("_RecipesGridView", Data.Recipes);
         }
 
         [HttpPost, ValidateInput(false)]
@@ -52,9 +52,7 @@ namespace DXFormWithGridView.Controllers
                 ViewData["EditError"] = "Please, correct all errors.";
             }
 
-            ViewData["EditableProduct"] = item;
-
-            return PartialView("_RecipesGridViewPartial", Data.Recipes);
+            return RecipesGridView();
         }
 
         [HttpPost, ValidateInput(false)]
@@ -81,15 +79,12 @@ namespace DXFormWithGridView.Controllers
                 ViewData["EditError"] = "Please, correct all errors.";
             }
 
-            ViewData["EditableProduct"] = item;
-
-            return PartialView("_RecipesGridViewPartial", Data.Recipes);
+            return RecipesGridView();
         }
 
         [HttpPost, ValidateInput(false)]
         public ActionResult RecipesGridViewPartialDelete(int Id)
         {
-            var model = new object[0];
             if (Id >= 0)
             {
                 try
@@ -105,7 +100,42 @@ namespace DXFormWithGridView.Controllers
                     ViewData["EditError"] = e.Message;
                 }
             }
-            return PartialView("_RecipesGridViewPartial", Data.Recipes);
+
+            return RecipesGridView();
         }
+
+        #endregion
+        
+        #region RecipeIngredients
+
+        public ActionResult RecipeIngredientsGridView(int recipeId = -1)
+        {
+            ViewData["recipeId"] = recipeId;
+
+            var model = Data.Recipes
+                .Where(r => r.Id == recipeId)
+                .SelectMany(r => r.RecipeIngredients)
+                .ToList();
+
+            return PartialView("_RecipeIngredientsGridView", model);
+        }
+
+        public ActionResult RecipeIngredientsBatchUpdate(MVCxGridViewBatchUpdateValues<RecipeIngredient, object> updateValues, int recipeId = -1)
+        {
+            if (ModelState.IsValid)
+            {
+                //DataContext.UpdateOrderItems(updateValues.Update, orderId);
+                //DataContext.InsertOrderItems(updateValues.Insert, orderId);
+                //DataContext.RemoveOrderItems(updateValues.DeleteKeys, orderId);
+            }
+            else
+            {
+                ViewData["EditError"] = "Please, correct all errors.";
+            }
+
+            return RecipeIngredientsGridView(recipeId);
+        }
+
+        #endregion
     }
 }
